@@ -9,3 +9,5 @@ edition = "2018"
 [dependencies]
 rand = "0.8.4"
 inputbot = "0.5.0"
+captrs = "0.3.1"
+image = "0.23.14"
