@@ -1,65 +1,48 @@
-use core::time;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
-use captrs::*;
 use image::{GenericImage, GenericImageView, ImageBuffer, Rgb, RgbImage};
-use inputbot::{*, KeybdKey::*, MouseButton::*};
-use rand::Rng;
+use scrap::{Capturer, Display};
 
-mod outdated;
+mod main_captrs;
 
 fn main() {
-	// Configuration
-	const DIM_X: u32 = 75;        // Width
-	const DIM_Y: u32 = 75;     //Height
-	const OFF_X: i32 = 1;       // Interpolation / pixel density setting (experimental)
-	const OFF_Y: i32 = 1;       // Interpolation / pixel density setting (experimental)
-	const SCREEN_W: u32 = 3840; // Screen width
-	const COOLDOWN: u64 = 10;
+	let display = Display::primary().expect("Couldn't find primary display.");
+	let mut capturer = Capturer::new(display).expect("Couldn't begin capture.");
+	let (w, h) = (capturer.width(), capturer.height());
 
-	sleep(time::Duration::from_secs(3));
 
-	let x = (MouseCursor::pos().0) as u32; //Left right
-	let y = (MouseCursor::pos().1) as u32; //up down
+	let frame: Vec<u8>;
+
+	let mut stop: Duration = Duration::from_millis(0);
+
+	loop {
+		let start = Instant::now();
+		if let Ok(frame_result) = capturer.frame() {
+			frame = frame_result.to_vec();
+			stop = start.elapsed();
+			break;
+		}
+	}
+	let x = 0;
+	let y = 0;
+	const DIM_X: u32 = 75;
+	const DIM_Y: u32 = 75;
+
 	let mut img: RgbImage = ImageBuffer::new(DIM_X, DIM_Y);
 
-	// let pixel = capture_pixel((y) as usize, (x) as usize, 1920 as usize);
-	// println!("{} {} {}", pixel[0], pixel[1], pixel[2]);
+	let location = (y * DIM_X + x) as usize;
+	let rgb = Rgb::from([frame[location + 2], frame[location + 1], frame[location]]);
 
-	let start = Instant::now();
+	img.put_pixel(x as u32, y as u32, rgb);
+	img.save("experimental.png").unwrap();
 
-	let mut capturer = Capturer::new(0).unwrap();
-	sleep(time::Duration::from_millis(50));
+	//Indexes:
+	// 0 = B
+	// 1 = G
+	// 2 = R
+	// 3 = Alpha
 
-	for width in 0..(DIM_X) {
-		for height in 0..(DIM_Y) {
-			MouseCursor::move_rel(0, OFF_Y);
-			// I love you GPU, but i really need those screenshots (NOTE: Loops until capture_frame() does not return timeout (refreshing faster than FPS))
-			let frame;
-			loop {
-				if let Ok(frame_result) = capturer.capture_frame() {
-					frame = frame_result;
-					break;
-				}
-			}
-			let pixel = extract_pixel((height + y) as usize, (width + x) as usize, SCREEN_W as usize, frame);
-			img.put_pixel(width as u32, height as u32, pixel);
-			// println!("{} {} {}", pixel[0], pixel[1], pixel[2]);
-		}
-		MouseCursor::move_rel(OFF_X, -(DIM_X as i32));
-	}
-	let stop = start.elapsed();
-
-	img.save("capture.png").unwrap();
-
-	let reference_time = 5.8;
-	let actual_time = ((stop.as_secs_f64() / reference_time) * 100.0) - 100.0;
-	println!("The program took {}ms and is {}% faster than reference time. It captured with {} FPS/PPS.", stop.as_millis(), actual_time, (DIM_X * DIM_Y) as f64 / stop.as_secs_f64());
-}
-
-fn extract_pixel(y: usize, x: usize, dim_x: usize, cap: Vec<Bgr8>) -> Rgb<u8> {
-	let location = (y * dim_x + x) as usize;
-	let rgb = Rgb::from([cap[location].r, cap[location].g, cap[location].b]);
-	return rgb;
+	println!("{}", frame[4]);
+	println!("Time taken: {}ms", stop.as_millis());
 }
