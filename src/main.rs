@@ -31,8 +31,8 @@ fn main() {
 
 	let start = Instant::now();
 
-	for width in 0..(DIM_X) {
-		for height in 0..(DIM_Y) {
+	for width in 0..(DIM_X / OFF_X) {
+		for height in 0..(DIM_Y / OFF_Y) {
 			if EscapeKey.is_pressed() {
 				println!("Escape key pressed, aborting now");
 				exit(0);
@@ -49,7 +49,7 @@ fn main() {
 					break;
 				}
 			}
-			let pixel = extract_pixel((height + y) as usize, (width + x) as usize, screen_w as usize, frame.to_vec());
+			let pixel = extract_pixel((height + y) as usize, (width + x) as usize, screen_w as usize, &frame.to_vec());
 			img.put_pixel(width as u32, height as u32, pixel);
 			// println!("{} {} {}", pixel[0], pixel[1], pixel[2]);
 		}
@@ -62,7 +62,8 @@ fn main() {
 	println!("The program took {}ms and captured with {} FPS/PPS.", stop.as_millis(), (DIM_X * DIM_Y) as f64 / stop.as_secs_f64());
 }
 
-fn extract_pixel(y: usize, x: usize, dim_x: usize, cap: Vec<u8>) -> Rgb<u8> {
+#[inline(always)]
+fn extract_pixel(y: usize, x: usize, dim_x: usize, cap: &Vec<u8>) -> Rgb<u8> {
 	let location = (((y * dim_x) + x) * 4) as usize;
 	let rgb = Rgb::from([cap[location + 2], cap[location + 1], cap[location]]);
 	return rgb;
