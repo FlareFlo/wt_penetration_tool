@@ -1,11 +1,10 @@
 use core::time;
 use std::thread::sleep;
-use std::time::{Duration, Instant};
+use std::time::{Instant};
 
-use image::{GenericImage, GenericImageView, ImageBuffer, Rgb, RgbImage};
-use inputbot::{*, KeybdKey::*, MouseButton::*};
-use rand::Rng;
+use image::{ImageBuffer, Rgb, RgbImage};
 use scrap::{Capturer, Display};
+use inputbot::MouseCursor;
 
 fn main() {
 	let display = Display::primary().expect("Couldn't find primary display.");
@@ -18,7 +17,7 @@ fn main() {
 	const OFF_Y: i32 = 1;       // Interpolation / pixel density setting (experimental)
 	// const COOLDOWN: u64 = 10;
 	let screen_w = capturer.width();
-	let screen_h = capturer.height();
+	// let screen_h = capturer.height();
 
 	sleep(time::Duration::from_secs(3));
 
