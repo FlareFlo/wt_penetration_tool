@@ -2,7 +2,8 @@ use core::time;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
-use captrs::*;
+// use captrs::*;
+use scrap::{Capturer, Display};
 use image::{GenericImage, GenericImageView, ImageBuffer, Rgb, RgbImage};
 use inputbot::{*, KeybdKey::*, MouseButton::*};
 use rand::Rng;
@@ -27,7 +28,8 @@ fn main_captrs() {
 
 	let start = Instant::now();
 
-	let mut capturer = Capturer::new(0).unwrap();
+	let display = Display::primary().expect("Couldn't find primary display.");
+	let mut capturer = Capturer::new(display).expect("Couldn't begin capture.");
 	sleep(time::Duration::from_millis(50));
 
 	for width in 0..(DIM_X) {
@@ -36,12 +38,12 @@ fn main_captrs() {
 			// I love you GPU, but i really need those screenshots (NOTE: Loops until capture_frame() does not return timeout (refreshing faster than FPS))
 			let frame;
 			loop {
-				if let Ok(frame_result) = capturer.capture_frame() {
+				if let Ok(frame_result) = capturer.frame() {
 					frame = frame_result;
 					break;
 				}
 			}
-			let pixel = extract_pixel((height + y) as usize, (width + x) as usize, SCREEN_W as usize, frame);
+			let pixel = extract_pixel((height + y) as usize, (width + x) as usize, SCREEN_W as usize, frame.to_vec());
 			img.put_pixel(width as u32, height as u32, pixel);
 			// println!("{} {} {}", pixel[0], pixel[1], pixel[2]);
 		}
@@ -56,8 +58,8 @@ fn main_captrs() {
 	println!("The program took {}ms and is {}% faster than reference time. It captured with {} FPS/PPS.", stop.as_millis(), actual_time, (DIM_X * DIM_Y) as f64 / stop.as_secs_f64());
 }
 
-fn extract_pixel(y: usize, x: usize, dim_x: usize, cap: Vec<Bgr8>) -> Rgb<u8> {
+fn extract_pixel(y: usize, x: usize, dim_x: usize, cap: Vec<u8>) -> Rgb<u8> {
 	let location = (y * dim_x + x) as usize;
-	let rgb = Rgb::from([cap[location].r, cap[location].g, cap[location].b]);
+	let rgb = Rgb::from([cap[location + 2], cap[location + 1], cap[location]]);
 	return rgb;
 }
