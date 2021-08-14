@@ -4,15 +4,16 @@ use std::time::{Instant};
 
 use image::{ImageBuffer, Rgb, RgbImage};
 use scrap::{Capturer, Display};
-use inputbot::MouseCursor;
+use inputbot::{MouseCursor, KeybdKey::EscapeKey};
+use std::process::exit;
 
 fn main() {
 	let display = Display::primary().expect("Couldn't find primary display.");
 	let mut capturer = Capturer::new(display).expect("Couldn't begin capture.");
 
 	// Configuration
-	const DIM_X: u32 = 120;        // Width
-	const DIM_Y: u32 = 100;     //Height
+	const DIM_X: u32 = 10;     // Width
+	const DIM_Y: u32 = 10;     //Height
 	const OFF_X: i32 = 1;       // Interpolation / pixel density setting (experimental)
 	const OFF_Y: i32 = 1;       // Interpolation / pixel density setting (experimental)
 	// const COOLDOWN: u64 = 10;
@@ -35,6 +36,10 @@ fn main() {
 
 	for width in 0..(DIM_X) {
 		for height in 0..(DIM_Y) {
+			if EscapeKey.is_pressed() {
+				println!("Escape key pressed, aborting now");
+				exit(0);
+			}
 			MouseCursor::move_rel(0, OFF_Y);
 			// I love you GPU, but i really need those screenshots (NOTE: Loops until capture_frame() does not return timeout (refreshing faster than FPS))
 			let frame;
