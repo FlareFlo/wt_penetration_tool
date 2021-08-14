@@ -7,14 +7,11 @@ use image::{GenericImage, GenericImageView, ImageBuffer, Rgb, RgbImage};
 use inputbot::{*, KeybdKey::*, MouseButton::*};
 use rand::Rng;
 
-const RED: usize = 0;
-const GREEN: usize = 1;
-const BLUE: usize = 2;
-const ALPHA: usize = 3;
+mod outdated;
 
 fn main() {
 	// Configuration
-	const DIM_X: u32 = 75;		// Width
+	const DIM_X: u32 = 75;        // Width
 	const DIM_Y: u32 = 75;     //Height
 	const OFF_X: i32 = 1;       // Interpolation / pixel density setting (experimental)
 	const OFF_Y: i32 = 1;       // Interpolation / pixel density setting (experimental)
@@ -65,22 +62,4 @@ fn extract_pixel(y: usize, x: usize, dim_x: usize, cap: Vec<Bgr8>) -> Rgb<u8> {
 	let location = (y * dim_x + x) as usize;
 	let rgb = Rgb::from([cap[location].r, cap[location].g, cap[location].b]);
 	return rgb;
-}
-
-
-fn screenshot() {
-	// sleep(Duration::from_millis(3000));
-	let mut capturer = Capturer::new(0).unwrap();
-	sleep(Duration::from_millis(100));
-	let mut ps = capturer.capture_frame().unwrap();
-	println!("Captured");
-
-
-	let mut img: RgbImage = ImageBuffer::new(1920, 1080);
-	for horizontal in 0..1919 {
-		for vertical in 0..1079 {
-			img.put_pixel(horizontal, vertical, Rgb::from([ps[(vertical * 1920 + horizontal) as usize].r, ps[(vertical * 1920 + horizontal) as usize].g, ps[(vertical * 1920 + horizontal) as usize].b]));
-		}
-	}
-	img.save("yeet.png").unwrap();
 }
