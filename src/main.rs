@@ -1,11 +1,11 @@
 use core::time;
+use std::process::exit;
 use std::thread::sleep;
-use std::time::{Instant};
+use std::time::Instant;
 
 use image::{ImageBuffer, Rgb, RgbImage};
+use inputbot::{KeybdKey::EscapeKey, MouseCursor};
 use scrap::{Capturer, Display};
-use inputbot::{MouseCursor, KeybdKey::EscapeKey};
-use std::process::exit;
 
 fn main() {
 	let display = Display::primary().expect("Couldn't find primary display.");
@@ -38,6 +38,9 @@ fn main() {
 		for height in 0..(DIM_Y) {
 			if EscapeKey.is_pressed() {
 				println!("Escape key pressed, aborting now");
+				exit(0);
+			} else if MouseCursor::pos().0 != ((width + x) as i32) || MouseCursor::pos().1 != ((height + y) as i32)  {
+				println!("Mouse was moved, aborting now");
 				exit(0);
 			}
 			MouseCursor::move_rel(0, OFF_Y);
