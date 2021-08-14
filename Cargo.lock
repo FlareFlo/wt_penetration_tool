@@ -616,7 +616,7 @@ dependencies = [
 
 [[package]]
 name = "wt_penetration_tool"
-version = "0.1.0"
+version = "0.0.2"
 dependencies = [
  "captrs",
  "image",
