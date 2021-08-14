@@ -31,9 +31,6 @@ fn main() {
 
 	let start = Instant::now();
 
-
-	sleep(time::Duration::from_millis(50));
-
 	for width in 0..(DIM_X) {
 		for height in 0..(DIM_Y) {
 			if EscapeKey.is_pressed() {
