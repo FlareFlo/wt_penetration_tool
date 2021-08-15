@@ -5,6 +5,14 @@ use std::time::{Duration, Instant};
 use image::{ImageBuffer, Rgb, RgbImage};
 use inputbot::MouseCursor;
 use scrap::{Capturer, Display};
+use std::collections::HashMap;
+
+//X Dimensions of the scan square
+const SQUARE_SIZE_X: u32 = 30;
+const SQUARE_SIZE_Y: u32 = 30; //Y Dimensions of the scan square
+
+const NUM_SQUARES_X: u32 = 2;
+const NUM_SQUARES_Y: u32 = 2;
 
 fn main() {
 	let display = Display::primary().expect("Couldn't find primary display.");
@@ -42,6 +50,8 @@ fn main() {
 			// let current_position = MouseCursor::pos();
 			let mut corner_pixels = [Rgb::from([0, 0, 0]); 4];
 
+			// waiting 3 frames on average due to mouse-cursor delays
+			let wait = 17 * 3;
 
 			MouseCursor::move_abs((square_index_x * SQUARE_SIZE_X + offset_x) as i32, (square_index_y * SQUARE_SIZE_Y + offset_y) as i32);
 			std::thread::sleep(Duration::from_millis(1));
@@ -81,21 +91,15 @@ fn main() {
 				continue;
 			}
 
-
 			for pixel_y in 0..SQUARE_SIZE_Y {
 				for pixel_x in 0..SQUARE_SIZE_X {
 					let pos_x = square_index_x * SQUARE_SIZE_X + pixel_x;
 					let pos_y = square_index_y * SQUARE_SIZE_Y + pixel_y;
 					MouseCursor::move_abs((pos_x + offset_x) as i32, (pos_y + offset_y) as i32);
 
-					let frame;
-					loop {
-						if let Ok(frame_new) = capturer.frame() {
-							frame = frame_new;
-							break;
-						}
-					};
+					std::thread::sleep(Duration::from_millis(wait));
 
+					let frame = get_frame(&mut capturer);
 					let frame_vec = frame.to_vec();
 					let pixel = extract_pixel(pos_x as usize, pos_y as usize, offset_x, offset_y, screen_width, &frame_vec);
 					img.put_pixel(pos_x, pos_y, pixel);
@@ -132,6 +136,27 @@ fn get_frame(capturer: &mut Capturer) -> scrap::Frame {
 			return frame;
 		}
 	}
+}
+
+// Grey = 128 128 128
+// Red = 255 75 56
+// Yellow = 255 244 0
+// Green = 32 240 32
+
+#[inline(always)]
+fn color_amount_over_threshold_checker(vec: &Vec<Rgb<u8>>, threshold: u32) -> bool{
+	let mut color_map = HashMap::new();
+
+	for color in vec {
+		*color_map.entry(color).or_insert(0) += 1;
+	}
+
+	let max_color_amount = color_map.iter()
+		.max_by_key(|entry| entry.1)
+		.map(|(key, value)| value)
+		.unwrap();
+
+	*max_color_amount >= threshold
 }
 
 #[inline(always)]
