@@ -25,8 +25,8 @@ fn main() {
 	const NUM_SQUARES_Y: u32 = 55;
 
 	// const COOLDOWN: u64 = 10;
-	let screen_w = capturer.width();
-	// let screen_h = capturer.height();
+	let screen_width = capturer.width();
+	// let screen_height = capturer.height();
 
 	sleep(time::Duration::from_secs(3));
 
@@ -148,9 +148,25 @@ fn main() {
 	// println!("Debug pixel is {:?}", debug_pixel);
 }
 
+// Deactivated for now, the borrow checker is too stoopid. Gotta copy paste it.
 #[inline(always)]
-fn extract_pixel(y: usize, x: usize, dim_x: usize, cap: &Vec<u8>) -> Rgb<u8> {
-	let location = (((y * dim_x) + x) * 4) as usize;
+fn get_frame(capturer: &mut Capturer) -> scrap::Frame {
+	loop {
+		if let Ok(frame) = capturer.frame() {
+			let frame = unsafe { std::mem::transmute::<_, scrap::Frame<'static>>(frame) };
+			return frame;
+		}
+	}
+}
+
+#[inline(always)]
+fn all_corners_same(corner_pixels: &[Rgb<u8>; 4]) -> bool {
+	corner_pixels[0] == corner_pixels[1] && corner_pixels[0] == corner_pixels[2] && corner_pixels[0] == corner_pixels[3]
+}
+
+#[inline(always)]
+fn extract_pixel(x: usize, y: usize, offset_x: u32, offset_y: u32, display_width: usize, cap: &Vec<u8>) -> Rgb<u8> {
+	let location = ((((y + offset_y as usize) * display_width) + (x + offset_x as usize)) * 4) as usize;
 	let rgb = Rgb::from([cap[location + 2], cap[location + 1], cap[location]]);
 	println!("Extracting pixel at location x: {} with y: {} offsets are x: {} y: {} delta_x: {} delta_y: {} and got color: {:?}", x, y, offset_x, offset_y, (x + offset_x as usize), (y + offset_y as usize), rgb);
 	return rgb;
