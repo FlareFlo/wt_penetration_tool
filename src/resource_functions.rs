@@ -31,11 +31,6 @@ pub fn get_start_position() -> ((i32, i32), (i32, i32)) {
 	}
 	loop {
 		if !inputbot::MouseButton::LeftButton.is_pressed() {
-			break
-		}
-	}
-	loop {
-		if inputbot::MouseButton::LeftButton.is_pressed() {
 			value.1 =  inputbot::MouseCursor::pos();
 			println!("registered stop at x = {} y = {}", value.1.0, value.1.1);
 			break
