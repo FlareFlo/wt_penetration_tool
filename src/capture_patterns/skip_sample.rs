@@ -13,12 +13,13 @@ pub fn skip_sample_capture(square_size_x: u32, square_size_y: u32, start: (i32, 
 	let mut capturer = Capturer::new(display).expect("Couldn't begin capture.");
 
 	let screen_width = capturer.width();
+	let screen_height = capturer.height();
 
 	sleep(time::Duration::from_secs(3));
 
 	let offset_x = start.0 as u32; //Left right
 	let offset_y = start.1 as u32; //up down
-	let mut img: RgbImage = ImageBuffer::new(square_size_x, square_size_y);
+	let mut img: RgbImage = ImageBuffer::new(screen_width as u32, screen_height as u32);
 
 	let mut captured_pixels = 0_u32;
 
@@ -37,7 +38,7 @@ pub fn skip_sample_capture(square_size_x: u32, square_size_y: u32, start: (i32, 
 			let frame = get_frame(&mut capturer);
 			let frame_vec = frame.to_vec();
 			let pixel = extract_pixel(pos_x as usize, pos_y as usize, offset_x, offset_y, screen_width, &frame_vec);
-			img.put_pixel(pos_x, pos_y, pixel);
+			img.put_pixel(pos_x + offset_x, pos_y + offset_y, pixel);
 
 			if MouseButton::LeftButton.is_pressed() | KeybdKey::EscapeKey.is_pressed() {
 				panic!("Mouse was distrubed/moved")
